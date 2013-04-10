@@ -1,16 +1,25 @@
 require 'net/ssh'
 require 'json'
+require 'aws-sdk'
 
 module Hansolo
   class Cli
-    attr_accessor :keydir, :urls, :tmpdir, :runlist
+    attr_accessor :keydir, :urls, :runlist, :s3conn, :app, :stage
 
     def initialize(args={})
-      @keydir = args[:keydir]
-      @urls = args[:urls]
-      @runlist = args[:runlist]
-      @tmpdir = '/tmp/cookbooks.working/'
-      @tmpdir << '/' unless @tmpdir =~ /\/$/
+      @keydir   = args[:keydir]
+      @urls     = args[:urls]
+      @runlist  = args[:runlist]
+      @app      = args[:app]
+      @stage    = args[:stage]
+
+      if (args[:aws_secret_access_key] and args[:aws_access_key_id])
+        @s3conn = AWS::S3.new(:access_key_id => args[:aws_access_key_id], :secret_access_key => args[:aws_secret_access_key])
+      end
+    end
+
+    def tmpdir
+      '/tmp'
     end
 
     def self.banner
@@ -43,28 +52,86 @@ Example Usage:
       -r apt::default,myapp::deploy
 
   $ hansolo -c hans.json
-
       HELP
     end
 
     def all!
       vendor_berkshelf!
-      rsync!
+      rsync_cookbooks!
+      rsync_data_bags!
       solo!
     end
 
-    def vendor_berkshelf!
-      Util.call_vendor_berkshelf(tmpdir)
+    def username(url)
+      @username ||= Util.parse_url(url)[:username]
     end
 
-    def rsync!
+    def dest_cookbooks_dir(url)
+      File.join("/", "home", username(url), "cookbooks")
+    end
+
+    def dest_data_bags_dir(url)
+      File.join("/", "home", username(url), "data_bags")
+    end
+
+    def local_cookbooks_tmpdir
+      File.join(tmpdir, 'cookbooks.working')
+    end
+
+    def local_data_bags_tmpdir
+      File.join(tmpdir, 'data_bags.working')
+    end
+
+    def vendor_berkshelf!
+      Util.call_vendor_berkshelf(local_cookbooks_tmpdir)
+    end
+
+    def s3_bucket_name
+      "mckesson-data_bags"
+    end
+
+    def s3_bucket
+      s3_bucket = s3conn.buckets[s3_bucket_name]
+      if s3_bucket.exists?
+        s3_bucket
+      else
+        s3conn.buckets.create(s3_bucket_name)
+      end
+    end
+
+    def s3_key_name
+      "#{app}/#{stage}/environment.json"
+    end
+
+    def s3_item
+      s3_bucket.objects[s3_key_name]
+    end
+
+    def rsync_cookbooks!
       raise ArgumentError, "missing urls array and keydir"  unless (urls && keydir)
-      urls.each { |url| Util.call_rsync(Util.parse_url(url).merge(keydir: keydir, tmpdir: tmpdir)) }
+      urls.each do |url|
+        opts = Util.parse_url(url).merge(keydir: keydir, sourcedir: local_cookbooks_tmpdir, destdir: dest_cookbooks_dir(url))
+        Util.call_rsync(opts)
+      end
+    end
+
+    def rsync_data_bags!
+      # Grab JSON file from S3, and place it into a conventional place
+      Util.call("mkdir -p #{File.join(local_data_bags_tmpdir, 'app')}")
+
+      File.open(File.join(local_data_bags_tmpdir, 'app', 'environment.json'), 'w') do |f|
+        f.write s3_item.read
+      end
+
+      urls.each do |url|
+        opts = Util.parse_url(url).merge(keydir: keydir, sourcedir: local_data_bags_tmpdir, destdir: dest_data_bags_dir(url))
+        Util.call_rsync(opts)
+      end
     end
 
     def solo!
       raise ArgumentError, "missing urls array and keydir"  unless (urls && keydir)
-      urls.each { |url| Util.chef_solo(Util.parse_url(url).merge(keydir: keydir, runlist: runlist)) }
+      urls.each { |url| Util.chef_solo(Util.parse_url(url).merge(keydir: keydir, cookbooks_dir: dest_cookbooks_dir(url), data_bags_dir: dest_data_bags_dir(url), runlist: runlist)) }
     end
   end
 
@@ -80,7 +147,7 @@ Example Usage:
 
     def self.call_rsync(args={})
       cmd = "rsync -av -e 'ssh -l #{args[:username]} #{ssh_options(["-p #{args[:port]}", "-i #{args[:keydir]}"])}' "
-      cmd << "#{args[:tmpdir]} #{args[:username]}@#{args[:hostname]}:#{args[:destination]}"
+      cmd << "#{args[:sourcedir]}/ #{args[:username]}@#{args[:hostname]}:#{args[:destdir]}"
       call cmd
     end
 
@@ -91,8 +158,8 @@ Example Usage:
       # chef-solo -c solo.rb -j tmp.json
 
       Net::SSH.start(args[:hostname], args[:username], :port => args[:port], :keys => [ args[:keydir] ]) do |ssh|
-        puts ssh.exec! "echo \"#{solo_rb(args[:tmpdir], args[:destination])}\" > /tmp/solo.rb"
-        puts ssh.exec! "echo '#{ { :run_list => args[:run_list] }.to_json }' > /tmp/deploy.json"
+        puts ssh.exec! "echo \"#{solo_rb(args[:tmpdir], args[:cookbooks_dir], args[:data_bags_dir])}\" > /tmp/solo.rb"
+        puts ssh.exec! "echo '#{ { :run_list => args[:runlist] }.to_json }' > /tmp/deploy.json"
         ssh.exec! 'PATH="$PATH:/opt/vagrant_ruby/bin" sudo chef-solo -l debug -c /tmp/solo.rb -j /tmp/deploy.json' do |ch, stream, line|
           puts line
         end
@@ -101,18 +168,19 @@ Example Usage:
 
     private
 
-    def self.solo_rb(tmpdir, cookbookdir)
+    def self.solo_rb(tmpdir, cookbooks_dir, data_bags_dir)
       [
         "file_cache_path '#{tmpdir}'",
-        "cookbook_path '#{cookbookdir}'"
+        "cookbook_path '#{cookbooks_dir}'",
+        "data_bags_path '#{data_bags_dir}'"
       ].join("\n")
     end
 
     def self.parse_url(url)
-      if (url =~ /^([^\@]*)@([^:]*):([0-9]*)(\/.*)$/)
-        return { username: $1, hostname: $2, port: $3.to_i, destination: $4 }
+      if (url =~ /^([^\@]*)@([^:]*):([0-9]*)$/)
+        return { username: $1, hostname: $2, port: $3.to_i }
       else
-        raise ArgumentError, "Unable to parse `#{url}', should be in form `user@host:port/dest_dir'"
+        raise ArgumentError, "Unable to parse `#{url}', should be in form `user@host:port'"
       end
     end
 

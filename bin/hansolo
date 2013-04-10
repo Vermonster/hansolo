@@ -28,11 +28,22 @@ optparse = OptionParser.new do |opts|
     options[:keydir] = o
   end
 
+  opts.on( '-a', '--app s', String, "The application name") do |o|
+    options[:app] = o
+  end
+
+  opts.on( '-s', '--stage s', String, "The stage name") do |o|
+    options[:stage] = o
+  end
+
   opts.on( '-r', '--runlist a,b,c', Array, "The runlist you want to effect on the target(s)") do |o|
     options[:runlist] = o
   end
 end.parse!(ARGV)
 
 opts = conf_options.merge(options).inject({}){|m,(k,v)| m[k.to_sym] = v; m}
+
+puts opts.inspect
+
 h = Hansolo::Cli.new conf_options.merge(opts)
 h.all!
