@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+$: << File.expand_path(File.join(__FILE__, '..', '..', 'lib'))
+
+require 'hansolo'
+require 'optparse'
+
+options = {}
+optparse = OptionParser.new do |opts|
+  opts.banner = Hansolo::Cli.banner
+
+  opts.on( '-h', '--help', 'Display this screen' ) do
+    puts opts
+    puts "\n"
+    puts Hansolo::Cli.help
+    exit
+  end
+
+  opts.on( '-c', '--config', 'Path to config file') do |filename|
+    options = JSON.parse(filename)
+  end
+
+  opts.on( '-u', '--urls', "Comma-sep list of urls.  user@host:port/dest/path pattern") do |o|
+    options[:urls] = o.split(",\s+?")
+  end
+
+  opts.on( '-k', '--keydir', "Your local ssh key directory") do |o|
+    options[:keydir] = o
+  end
+
+  opts.on( '-t', '--tmpdir', "Your local directory to temp. vendor cookbooks") do |o|
+    options[:tmpdir] = o
+  end
+
+  opts.on( '-r', '--runlist', "The runlist you want to effect on the target(s)") do |o|
+    options[:runlist] = o.split(",\s+?")
+  end
+end.parse!
+
+h = Hansolo::Cli.new(options)
+h.all!
