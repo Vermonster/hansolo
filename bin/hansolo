@@ -4,7 +4,8 @@ $: << File.expand_path(File.join(__FILE__, '..', '..', 'lib'))
 require 'hansolo'
 require 'optparse'
 
-options = {}
+conf_options = {}; options = {}
+
 optparse = OptionParser.new do |opts|
   opts.banner = Hansolo::Cli.banner
 
@@ -15,26 +16,23 @@ optparse = OptionParser.new do |opts|
     exit
   end
 
-  opts.on( '-c', '--config', 'Path to config file') do |filename|
-    options = JSON.parse(filename)
+  opts.on( '-c', '--config file', String, 'Path to config file') do |filename|
+    conf_options = JSON.parse(File.read(filename)) if filename != '' and File.exists?(filename)
   end
 
-  opts.on( '-u', '--urls', "Comma-sep list of urls.  user@host:port/dest/path pattern") do |o|
-    options[:urls] = o.split(",\s+?")
+  opts.on( '-u', '--urls a,b,c', Array, "Comma-sep list of urls, e.g.: user@host:port/dest/path") do |o|
+    options[:urls] = o
   end
 
-  opts.on( '-k', '--keydir', "Your local ssh key directory") do |o|
+  opts.on( '-k', '--keydir s', String, "Your local ssh key directory") do |o|
     options[:keydir] = o
   end
 
-  opts.on( '-t', '--tmpdir', "Your local directory to temp. vendor cookbooks") do |o|
-    options[:tmpdir] = o
+  opts.on( '-r', '--runlist a,b,c', Array, "The runlist you want to effect on the target(s)") do |o|
+    options[:runlist] = o
   end
+end.parse!(ARGV)
 
-  opts.on( '-r', '--runlist', "The runlist you want to effect on the target(s)") do |o|
-    options[:runlist] = o.split(",\s+?")
-  end
-end.parse!
-
-h = Hansolo::Cli.new(options)
+opts = conf_options.merge(options).inject({}){|m,(k,v)| m[k.to_sym] = v; m}
+h = Hansolo::Cli.new conf_options.merge(opts)
 h.all!

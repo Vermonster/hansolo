@@ -9,7 +9,7 @@ module Hansolo
       @keydir = args[:keydir]
       @urls = args[:urls]
       @runlist = args[:runlist]
-      @tmpdir = args[:tmpdir] || '/tmp/cookbooks.working/'
+      @tmpdir = '/tmp/cookbooks.working/'
       @tmpdir << '/' unless @tmpdir =~ /\/$/
     end
 
@@ -64,17 +64,18 @@ Example Usage:
 
     def solo!
       raise ArgumentError, "missing urls array and keydir"  unless (urls && keydir)
-      urls.each { |url| Util.call_chef_solo(Util.parse_url(url).merge(runlist: runlist)) }
+      urls.each { |url| Util.chef_solo(Util.parse_url(url).merge(keydir: keydir, runlist: runlist)) }
     end
   end
 
   module Util
     def self.call(cmd)
-      %x{cmd}
+      puts "* #{cmd}"
+      %x{#{cmd}}
     end
 
     def self.call_vendor_berkshelf(tmpdir)
-      call("bundle exec berks install --path #{tmpdir}")
+      call("rm -rf #{tmpdir} && bundle exec berks install --path #{tmpdir}")
     end
 
     def self.call_rsync(args={})
@@ -90,9 +91,9 @@ Example Usage:
       # chef-solo -c solo.rb -j tmp.json
 
       Net::SSH.start(args[:hostname], args[:username], :port => args[:port], :keys => [ args[:keydir] ]) do |ssh|
-        puts ssh.exec! "echo '#{solo_rb(args[:tmpdir], args[:destination])}' > /tmp/solo.rb"
+        puts ssh.exec! "echo \"#{solo_rb(args[:tmpdir], args[:destination])}\" > /tmp/solo.rb"
         puts ssh.exec! "echo '#{ { :run_list => args[:run_list] }.to_json }' > /tmp/deploy.json"
-        ssh.exec! "sudo chef-solo -l debug -c /tmp/solo.rb -j /tmp/deploy.json" do |ch, stream, line|
+        ssh.exec! 'PATH="$PATH:/opt/vagrant_ruby/bin" sudo chef-solo -l debug -c /tmp/solo.rb -j /tmp/deploy.json' do |ch, stream, line|
           puts line
         end
       end

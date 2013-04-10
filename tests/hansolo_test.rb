@@ -13,7 +13,7 @@ describe Hansolo do
       before { @cli = Hansolo::Cli.new }
 
       it "should shell berkshelf command" do
-        Hansolo::Util.expects(:call).with("bundle exec berks install --path /tmp/cookbooks.working/")
+        Hansolo::Util.expects(:call).with("rm -rf /tmp/cookbooks.working/ && bundle exec berks install --path /tmp/cookbooks.working/")
         @cli.vendor_berkshelf!
       end
     end
