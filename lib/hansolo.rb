@@ -152,7 +152,7 @@ module Hansolo
       [
         "file_cache_path '#{tmpdir}'",
         "cookbook_path '#{cookbooks_dir}'",
-        "data_bags_path '#{data_bags_dir}'"
+        "data_bag_path '#{data_bags_dir}'"
       ].join("\n")
     end
 
