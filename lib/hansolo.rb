@@ -4,22 +4,23 @@ require 'aws-sdk'
 
 module Hansolo
   class Cli
-    attr_accessor :keydir, :urls, :runlist, :s3conn, :app, :stage
+    attr_accessor :keydir, :urls, :runlist, :s3conn, :app, :stage, :aws_bucket_name, :aws_data_bag_keys
 
     def initialize(args={})
-      @keydir   = args[:keydir]
-      @urls     = args[:urls]
-      @runlist  = args[:runlist]
-      @app      = args[:app]
-      @stage    = args[:stage]
+      @keydir                 = args[:keydir]
+      @urls                   = args[:urls]
+      @runlist                = args[:runlist]
+      @app                    = args[:app]
+      @stage                  = args[:stage]
+      @aws_bucket_name        = args[:aws_bucket_name]
+      @aws_data_bag_keys      = args[:aws_data_bag_keys]
+      @aws_secret_access_key  = args[:aws_secret_access_key]
+      @aws_access_key_id      = args[:aws_access_key_id]
 
-      if (args[:aws_secret_access_key] and args[:aws_access_key_id])
-        @s3conn = AWS::S3.new(:access_key_id => args[:aws_access_key_id], :secret_access_key => args[:aws_secret_access_key])
+      if (@aws_secret_access_key && @aws_access_key_id && @aws_bucket_name && @aws_data_bag_keys)
+        @s3conn = AWS::S3.new(:access_key_id => args[:aws_access_key_id],
+                              :secret_access_key => args[:aws_secret_access_key])
       end
-    end
-
-    def tmpdir
-      '/tmp'
     end
 
     def self.banner
@@ -27,38 +28,17 @@ module Hansolo
     end
 
     def self.help
-      <<-HELP
-This is a simple cli program to automate deploy using chef-solo and
-berkshelf.
+      DATA.read
+    end
 
-If you pass a filename, put in JSON for the configuration.  So in hans.json:
-
-  { "keydir": "/Applications/Vagrant/embedded/gems/gems/vagrant-1.1.4/keys/vagrant" }
-
-Then you can pass to the command as:
-
-  $ hansolo -c hans.json
-
-NOTE: Command-line args trump config settings.
-
-Example Usage:
-
-  $ hansolo -t /tmp/myapp.cookbooks \
-
-      -k /Applications/Vagrant/embedded/gems/gems/vagrant-1.1.4/keys/vagrant \
-
-      -u user@host1:22/path,user@host2:22/path \
-
-      -r apt::default,myapp::deploy
-
-  $ hansolo -c hans.json
-      HELP
+    def tmpdir
+      '/tmp'
     end
 
     def all!
       vendor_berkshelf!
       rsync_cookbooks!
-      rsync_data_bags!
+      rsync_data_bags! if s3conn
       solo!
     end
 
@@ -86,26 +66,22 @@ Example Usage:
       Util.call_vendor_berkshelf(local_cookbooks_tmpdir)
     end
 
-    def s3_bucket_name
-      "mckesson-data_bags"
-    end
-
     def s3_bucket
-      s3_bucket = s3conn.buckets[s3_bucket_name]
+      s3_bucket = s3conn.buckets[aws_bucket_name]
       if s3_bucket.exists?
         s3_bucket
       else
-        s3conn.buckets.create(s3_bucket_name)
+        s3conn.buckets.create(aws_bucket_name)
       end
     end
 
-    def s3_key_name
-      "#{app}/#{stage}/environment.json"
-    end
+    #def s3_key_name
+      #"#{app}/#{stage}/environment.json"
+    #end
 
-    def s3_item
-      s3_bucket.objects[s3_key_name]
-    end
+    #def s3_item
+      #s3_bucket.objects[s3_key_name]
+    #end
 
     def rsync_cookbooks!
       raise ArgumentError, "missing urls array and keydir"  unless (urls && keydir)
@@ -119,8 +95,12 @@ Example Usage:
       # Grab JSON file from S3, and place it into a conventional place
       Util.call("mkdir -p #{File.join(local_data_bags_tmpdir, 'app')}")
 
-      File.open(File.join(local_data_bags_tmpdir, 'app', 'environment.json'), 'w') do |f|
-        f.write s3_item.read
+      aws_data_bag_keys.each do |key_name|
+        item = s3_bucket.objects[key_name]
+        base_key_name = File.basename(key_name)
+        File.open(File.join(local_data_bags_tmpdir, 'app', base_key_name), 'w') do |f|
+          f.write item.read
+        end if item.exists?
       end
 
       urls.each do |url|
@@ -197,3 +177,29 @@ Example Usage:
 end
 
 require "hansolo/version"
+
+__END__
+This is a simple cli program to automate deploy using chef-solo and
+berkshelf.
+
+If you pass a filename, put in JSON for the configuration.  So in hans.json:
+
+  { "keydir": "/Applications/Vagrant/embedded/gems/gems/vagrant-1.1.4/keys/vagrant" }
+
+Then you can pass to the command as:
+
+  $ hansolo -c hans.json
+
+NOTE: Command-line args trump config settings.
+
+Example Usage:
+
+  $ hansolo -t /tmp/myapp.cookbooks \
+
+      -k /Applications/Vagrant/embedded/gems/gems/vagrant-1.1.4/keys/vagrant \
+
+      -u user@host1:22/path,user@host2:22/path \
+
+      -r apt::default,myapp::deploy
+
+  $ hansolo -c hans.json
