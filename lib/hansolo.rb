@@ -93,6 +93,7 @@ module Hansolo
 
     def rsync_data_bags!
       # Grab JSON file from S3, and place it into a conventional place
+      Util.call("rm -rf #{File.join(local_data_bags_tmpdir, 'app')}")
       Util.call("mkdir -p #{File.join(local_data_bags_tmpdir, 'app')}")
 
       aws_data_bag_keys.each do |key_name|
