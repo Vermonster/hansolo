@@ -182,19 +182,19 @@ __END__
 This is a simple cli program to automate deploy using chef-solo and
 berkshelf.
 
-If you pass a filename, put in JSON for the configuration.  So in hans.json:
+If you pass a filename, put in JSON for the configuration.  So in .hansolo.json:
 
   { "keydir": "/Applications/Vagrant/embedded/gems/gems/vagrant-1.1.4/keys/vagrant" }
 
 Then you can pass to the command as:
 
-  $ hansolo -c hans.json
+  $ hansolo -c .hansolo.json
 
 NOTE: Command-line args trump config settings.
 
 Example Usage:
 
-  $ hansolo -t /tmp/myapp.cookbooks \
+  $ hansolo -s approval -t /tmp/myapp.cookbooks \
 
       -k /Applications/Vagrant/embedded/gems/gems/vagrant-1.1.4/keys/vagrant \
 
@@ -202,4 +202,9 @@ Example Usage:
 
       -r apt::default,myapp::deploy
 
-  $ hansolo -c hans.json
+  $ hansolo -s approval -c .hansolo.json
+
+  $ hansolo -s approval
+
+NOTE: You don't need to pass -c if you use the filename .hansolo.json.  Passing -c
+will override reading this default.

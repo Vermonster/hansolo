@@ -41,9 +41,13 @@ optparse = OptionParser.new do |opts|
   end
 end.parse!(ARGV)
 
-opts = conf_options.merge(options).inject({}){|m,(k,v)| m[k.to_sym] = v; m}
+unless conf_options.any?
+  default_conf_filename = File.expand_path(File.join(".",".hansolo.json"))
+  conf_options = JSON.parse(File.read(default_conf_filename)) if File.exists?(default_conf_filename)
+end
 
-puts opts.inspect
+
+opts = conf_options.merge(options).inject({}){|m,(k,v)| m[k.to_sym] = v; m}
 
 h = Hansolo::Cli.new conf_options.merge(opts)
 h.all!
