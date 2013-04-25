@@ -1,0 +1,68 @@
+#!/usr/bin/env ruby
+$: << File.expand_path(File.join(__FILE__, '..', '..', 'lib'))
+
+require 'hansolo'
+require 'optparse'
+require 'terminal-table'
+
+conf_filename = File.expand_path("Hanfile")
+load conf_filename if File.exists?(conf_filename)
+
+options = {}
+
+optparse = OptionParser.new do |opts|
+  opts.banner = Hansolo::DataBag.banner
+
+  opts.on( '-h', '--help', 'Display this screen' ) do
+    puts opts
+    puts "\n"
+    puts Hansolo::DataBag.help
+    exit
+  end
+
+  opts.on( '-u', '--urls a,b,c', Array, "Comma-sep list of urls, e.g.: user@host:port/dest/path") do |o|
+    options[:urls] = o
+  end
+
+  opts.on( '-k', '--keydir s', String, "Your local ssh key directory") do |o|
+    options[:keydir] = o
+  end
+
+  opts.on( '-a', '--app s', String, "The application name") do |o|
+    options[:app] = o
+  end
+
+  opts.on( '-b', '--data-bag-and-item s', String, "The data-bag and data-item, e.g.: 'config/environment'") do |o|
+    options[:data_bag_and_data_item] = o
+  end
+
+  opts.on( '--set s', Array, "New configuration, KEY=value,KEY2=value2") do |o|
+    options[:set] = o
+  end
+end.parse!(ARGV)
+
+opts = options.inject({}){|m,(k,v)| m[k.to_sym] = v; m}
+
+h = Hansolo::DataBag.new(opts)
+if opts[:data_bag_and_data_item]
+  if opts[:set]
+    data_bag_items = opts[:set].inject({}){|h,a| r = a.split('=',2); h[r[0]] = r[1]; h}
+    h.write_data_bag!(data_bag_items)
+  end
+  puts Terminal::Table.new rows: h.read.reject{|k,v| k == 'id'}, headings: [ 'key', 'value' ]
+else
+  puts "\nNOTE: Run with -b [ data_bag/data_item ] to list and set individual config.\n\n"
+  table = Terminal::Table.new do |t|
+    t.headings = [ 'key', 'value' ]
+    first = true
+    h.read_all.each_pair do |data_bag_name, data|
+      t.add_separator unless first
+      t.add_row [ { value: " ", colspan: 2, alignment: :center, border_y: " " } ]
+      t.add_row [ { value: "Data Bag and Item: #{data_bag_name}", colspan: 2, alignment: :center } ]
+      t.add_separator
+      data.reject{|k,v| k == 'id'}.each_pair { |k,v| t.add_row [ k, v ] }
+      first = false
+    end
+  end
+  puts table
+end

@@ -4,20 +4,19 @@ $: << File.expand_path(File.join(__FILE__, '..', '..', 'lib'))
 require 'hansolo'
 require 'optparse'
 
-conf_options = {}; options = {}
+conf_filename = File.expand_path("Hanfile")
+load conf_filename if File.exists?(conf_filename)
+
+options = {}
 
 optparse = OptionParser.new do |opts|
-  opts.banner = Hansolo::Cli.banner
+  opts.banner = Hansolo::Solo.banner
 
   opts.on( '-h', '--help', 'Display this screen' ) do
     puts opts
     puts "\n"
     puts Hansolo::Cli.help
     exit
-  end
-
-  opts.on( '-c', '--config file', String, 'Path to config file') do |filename|
-    conf_options = JSON.parse(File.read(filename)) if filename != '' and File.exists?(filename)
   end
 
   opts.on( '-u', '--urls a,b,c', Array, "Comma-sep list of urls, e.g.: user@host:port/dest/path") do |o|
@@ -32,22 +31,11 @@ optparse = OptionParser.new do |opts|
     options[:app] = o
   end
 
-  opts.on( '-s', '--stage s', String, "The stage name") do |o|
-    options[:stage] = o
-  end
-
   opts.on( '-r', '--runlist a,b,c', Array, "The runlist you want to effect on the target(s)") do |o|
     options[:runlist] = o
   end
 end.parse!(ARGV)
 
-unless conf_options.any?
-  default_conf_filename = File.expand_path(File.join(".",".hansolo.json"))
-  conf_options = JSON.parse(File.read(default_conf_filename)) if File.exists?(default_conf_filename)
-end
+opts = options.inject({}){|m,(k,v)| m[k.to_sym] = v; m}
 
-
-opts = conf_options.merge(options).inject({}){|m,(k,v)| m[k.to_sym] = v; m}
-
-h = Hansolo::Cli.new conf_options.merge(opts)
-h.all!
+Hansolo::Solo.new(opts).run!
