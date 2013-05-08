@@ -73,6 +73,7 @@ module Hansolo
       urls.each do |url|
         opts = Util.parse_url(url).merge(
           keydir: keydir,
+          tmpdir: '/tmp',
           cookbooks_dir: Util.dest_cookbooks_dir(url),
           data_bags_dir: Util.dest_data_bags_dir(url),
           runlist: runlist,

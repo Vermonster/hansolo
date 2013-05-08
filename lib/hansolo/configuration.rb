@@ -23,8 +23,8 @@ module Hansolo
       :after_data_bags_write
 
     def initialize
-      @local_cookbooks_dir = File.join('tmp', 'cookbooks')
-      @local_data_bags_dir = File.join('tmp', 'data_bags')
+      @local_cookbooks_dir = File.join('', 'tmp', 'cookbooks')
+      @local_data_bags_dir = File.join('', 'tmp', 'data_bags')
     end
   end
 end
