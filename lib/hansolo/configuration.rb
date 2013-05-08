@@ -20,11 +20,13 @@ module Hansolo
       :before_rsync_data_bags,
       :before_solo,
       :before_data_bags_read,
-      :after_data_bags_write
+      :after_data_bags_write,
+      :post_ssh_cmd
 
     def initialize
       @local_cookbooks_dir = File.join('', 'tmp', 'cookbooks')
       @local_data_bags_dir = File.join('', 'tmp', 'data_bags')
+      @post_ssh_cmd = 'uptime'
     end
   end
 end

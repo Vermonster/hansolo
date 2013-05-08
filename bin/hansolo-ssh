@@ -10,7 +10,7 @@ load conf_filename if File.exists?(conf_filename)
 options = {}
 
 optparse = OptionParser.new do |opts|
-  opts.banner = Hansolo::Solo.banner
+  opts.banner = Hansolo::SSH.banner
 
   opts.on( '-h', '--help', 'Display this screen' ) do
     puts opts
@@ -27,7 +27,7 @@ optparse = OptionParser.new do |opts|
     options[:app] = o
   end
 
-  opts.on( '-c', '--cmd', String, "A command to run after ssh'ing to a target, e.g. 'ls'") do |o|
+  opts.on( '--post-ssh-cmd', String, "A command to run after ssh'ing to a target, e.g. 'ls'") do |o|
     options[:post_ssh_cmd] = o
   end
 end.parse!(ARGV)

@@ -25,8 +25,18 @@ module Hansolo
       @@attr_accessors.each.with_object({}) { |attr, h| h[attr] = send(attr) }
     end
 
+    # TODO: Fix this mess
+    def urls
+      urls = if @urls.respond_to?(:call)
+        instance_eval &@urls
+      elsif @urls.is_a?(String)
+        [ @urls ]
+      else
+        @urls
+      end
+      urls.tap { |urls| raise "No target URLs" if urls.empty? }
+    end
+
   end
 end
 
-require 'hansolo/cli/solo'
-require 'hansolo/cli/data_bag'

@@ -9,18 +9,6 @@ module Hansolo
       DATA.read
     end
 
-    # TODO: Fix this mess
-    def urls
-      urls = if @urls.respond_to?(:call)
-        instance_eval &@urls
-      elsif @urls.is_a?(String)
-        [ @urls ]
-      else
-        @urls
-      end
-      urls.tap { |urls| raise "No target URLs" if urls.empty? }
-    end
-
     def run!(opts={})
       if configuration.before_rsync_cookbooks.respond_to?(:call) && !opts[:skip_callbacks]
         instance_eval &configuration.before_rsync_cookbooks

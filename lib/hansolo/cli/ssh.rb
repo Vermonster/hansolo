@@ -1,3 +1,5 @@
+require 'hansolo/cli'
+
 module Hansolo
   class SSH < CLI
     attr_accessor :post_ssh_cmd

@@ -5,6 +5,11 @@ module Hansolo
       %x{#{cmd}}
     end
 
+    def self.exec(cmd)
+      puts "* #{cmd}"
+      Kernel.exec(cmd)
+    end
+
     def self.dest_cookbooks_dir(url)
       File.join("/", "home", Util.username(url), "cookbooks")
     end
@@ -18,8 +23,8 @@ module Hansolo
     end
 
     def self.call_ssh(args={})
-      cmd = "#{gateway_cmd(args[:gateway])} ssh #{args[:username]}@#{args[:hostname]} #{ssh_options([" -p #{args[:port]}"])}"
-      call cmd
+      cmd = "#{gateway_cmd(args[:gateway])} ssh #{args[:username]}@#{args[:hostname]} #{ssh_options([" -p #{args[:port]}", "-o", "ForwardX11=yes", "-o", "ForwardX11Trusted=yes"])} #{args[:post_ssh_cmd]}"
+      exec cmd
     end
 
     def self.call_rsync(args={})
