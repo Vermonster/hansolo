@@ -9,14 +9,16 @@ module Hansolo
       DATA.read
     end
 
+    # TODO: Fix this mess
     def urls
-      if @urls.respond_to?(:call)
+      urls = if @urls.respond_to?(:call)
         instance_eval &@urls
       elsif @urls.is_a?(String)
         [ @urls ]
       else
         @urls
       end
+      urls.tap { |urls| raise "No target URLs" if urls.empty? }
     end
 
     def run!(opts={})
@@ -45,7 +47,6 @@ module Hansolo
           destdir: Util.dest_data_bags_dir(url),
           gateway: gateway
         )
-
         threads << Thread.new { Util.call_rsync(opts) }
       end
       threads.each { |t| t.join }

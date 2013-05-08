@@ -17,6 +17,11 @@ module Hansolo
       call("rm -rf #{tmpdir} && bundle exec berks install --path #{tmpdir}")
     end
 
+    def self.call_ssh(args={})
+      cmd = "#{gateway_cmd(args[:gateway])} ssh #{args[:username]}@#{args[:hostname]} #{ssh_options([" -p #{args[:port]}"])}"
+      call cmd
+    end
+
     def self.call_rsync(args={})
       cmd = "rsync --delete -av -e '#{gateway_cmd(args[:gateway])} ssh -l #{args[:username]} #{ssh_options(["-p #{args[:port]}"])}' "
       cmd << "#{args[:sourcedir]}/ #{args[:username]}@#{args[:hostname]}:#{args[:destdir]}"
@@ -76,6 +81,7 @@ module Hansolo
       ].join("\n")
     end
 
+    # TODO: Use URI.parse, no reason to reinvent this!
     def self.parse_url(url)
       if (url =~ /^([^\@]*)@([^:]*):([0-9]*)$/)
         return { username: $1, hostname: $2, port: $3.to_i }
