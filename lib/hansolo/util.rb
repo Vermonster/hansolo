@@ -23,7 +23,9 @@ module Hansolo
     end
 
     def self.call_ssh(args={})
-      cmd = "#{gateway_cmd(args[:gateway])} ssh #{args[:username]}@#{args[:hostname]} #{ssh_options([" -p #{args[:port]}", "-o", "ForwardX11=yes", "-o", "ForwardX11Trusted=yes"])} #{args[:post_ssh_cmd]}"
+      cmd = "#{gateway_cmd(args[:gateway])} -t 'ssh #{args[:username]}@#{args[:hostname]} #{ssh_options(["-p #{args[:port]}"])}"
+      cmd << " -t \"#{args[:post_ssh_cmd]}; bash -i\"" if args[:post_ssh_cmd]
+      cmd << "'"
       exec cmd
     end
 

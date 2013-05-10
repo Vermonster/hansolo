@@ -1,3 +1,5 @@
+require 'hansolo/cli'
+
 module Hansolo
   class Solo < CLI
 

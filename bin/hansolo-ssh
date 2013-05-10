@@ -27,7 +27,7 @@ optparse = OptionParser.new do |opts|
     options[:app] = o
   end
 
-  opts.on( '--post-ssh-cmd', String, "A command to run after ssh'ing to a target, e.g. 'ls'") do |o|
+  opts.on( '--post-ssh-cmd s', String, "A command to run after ssh'ing to a target, e.g. 'ls'") do |o|
     options[:post_ssh_cmd] = o
   end
 end.parse!(ARGV)

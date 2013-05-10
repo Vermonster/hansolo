@@ -1,3 +1,5 @@
+require 'hansolo/cli'
+
 module Hansolo
   class DataBag < CLI
     attr_accessor :data_bag, :data_bag_item

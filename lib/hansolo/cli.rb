@@ -1,3 +1,5 @@
+require 'hansolo'
+
 module Hansolo
   class CLI
     @@attr_accessors = [ :keydir, :app, :urls, :runlist, :local_tmp_dir, :local_cookbooks_dir, :local_data_bags_dir, :gateway ]

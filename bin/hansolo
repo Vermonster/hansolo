@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 $: << File.expand_path(File.join(__FILE__, '..', '..', 'lib'))
 
-require 'hansolo'
+require 'hansolo/cli/solo'
 require 'optparse'
 
 conf_filename = File.expand_path("Hanfile")
