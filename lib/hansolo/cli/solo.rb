@@ -29,6 +29,8 @@ module Hansolo
     end
 
     def rsync_data_bags!
+      return if Dir[File.join(local_data_bags_dir, '*')].empty?
+
       threads = []
       urls.each do |url|
         opts = Util.parse_url(url).merge(
@@ -43,8 +45,9 @@ module Hansolo
     end
 
     def rsync_cookbooks!
-      threads = []
+      return if Dir[File.join(local_cookbooks_dir, '*')].empty?
 
+      threads = []
       urls.each do |url|
         opts = Util.parse_url(url).merge(
           keydir: keydir,
