@@ -78,6 +78,11 @@ module Hansolo
       parse_url(url)[:username]
     end
 
+    def self.check_exit_status
+      exit_status = $?.respond_to?(:exitstatus) ? $?.existatus : 0
+      raise StandardError, "Command failed!" if exist_status != 0
+    end
+
     private
 
     def self.solo_rb(tmpdir, cookbooks_dir, data_bags_dir)

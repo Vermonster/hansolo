@@ -14,16 +14,19 @@ module Hansolo
     def run!(opts={})
       if configuration.before_rsync_cookbooks.respond_to?(:call) && !opts[:skip_callbacks]
         instance_eval &configuration.before_rsync_cookbooks
+        Util.check_exit_status
       end
       rsync_cookbooks!
 
       if configuration.before_rsync_data_bags.respond_to?(:call) && !opts[:skip_callbacks]
         instance_eval &configuration.before_rsync_data_bags
+        Util.check_exit_status
       end
       rsync_data_bags!
 
       if configuration.before_solo.respond_to?(:call) && !opts[:skip_callbacks]
         instance_eval &configuration.before_solo
+        Util.check_exit_status
       end
       solo!
     end

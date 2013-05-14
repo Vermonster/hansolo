@@ -26,6 +26,7 @@ module Hansolo
     def read
       if configuration.before_data_bags_read.respond_to?(:call)
         instance_eval &configuration.before_data_bags_read
+        Util.check_exit_status
       end
       self.class.read_data_bag(data_bag_filename)
     end
@@ -33,6 +34,7 @@ module Hansolo
     def read_all
       if configuration.before_data_bags_read.respond_to?(:call)
         instance_eval &configuration.before_data_bags_read
+        Util.check_exit_status
       end
 
       bags_data = {}
