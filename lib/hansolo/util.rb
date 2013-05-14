@@ -79,8 +79,8 @@ module Hansolo
     end
 
     def self.check_exit_status
-      exit_status = $?.respond_to?(:exitstatus) ? $?.existatus : 0
-      raise StandardError, "Command failed!" if exist_status != 0
+      exit_status = $?.respond_to?(:exitstatus) ? $?.exitstatus : 0
+      raise StandardError, "Command failed!" if exit_status != 0
     end
 
     private
