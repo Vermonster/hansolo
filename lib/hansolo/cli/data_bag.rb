@@ -52,7 +52,7 @@ module Hansolo
     end
 
     def write_data_bag!(new_vars)
-      content = self.class.read_data_bag(data_bag_filename) || {}
+      content = read || {}
       new_vars.each_pair do |k,v|
         if v == '' || v.nil?
           content.delete(k)
