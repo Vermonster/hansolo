@@ -39,7 +39,7 @@ module Hansolo
       return unless gateway_url
 
       gateway_parts = parse_url(gateway_url)
-      "ssh -A -l #{gateway_parts[:username]} -X #{ssh_options(["-p #{gateway_parts[:port]}"])} #{gateway_parts[:hostname]}"
+      "ssh -A -l #{gateway_parts[:username]} #{ssh_options(["-p #{gateway_parts[:port]}"])} #{gateway_parts[:hostname]}"
     end
 
     def self.chef_solo(args={})
