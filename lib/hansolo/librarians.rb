@@ -1,0 +1,1 @@
+require 'hansolo/librarians/berkshelf'

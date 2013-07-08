@@ -1,5 +1,6 @@
 require 'logger'
 require "hansolo/version"
+require 'hansolo/librarians'
 
 module Hansolo
   class << self
@@ -37,6 +38,14 @@ module Hansolo
     LOGGER
   end
 
+  def self.librarians
+    {
+      berkshelf: Librarians::Berkshelf
+    }
+  end
+  private_class_method :librarians
 
+  def self.librarian=(librarian)
+    @librarian = librarians[librarian]
   end
 end
