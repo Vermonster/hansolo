@@ -11,11 +11,6 @@ module Hansolo
                   :runlist,
                   :cookbooks_path,
                   :data_bags_path,
-                  :before_rsync_cookbooks,
-                  :before_rsync_data_bags,
-                  :before_solo,
-                  :before_data_bags_read,
-                  :after_data_bags_write,
                   :post_ssh_command,
                   :librarian,
                   :ssh_options
