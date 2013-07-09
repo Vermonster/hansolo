@@ -6,7 +6,7 @@ require 'hansolo/providers/aws/solo'
 
 module Hansolo
   class << self
-    attr_accessor :aws_access_key_id, :aws_secret_access_key
+    attr_accessor :aws_access_key_id, :aws_secret_access_key, :bucket_name
   end
 
   def self.aws_credentials

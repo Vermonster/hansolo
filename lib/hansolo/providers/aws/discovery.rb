@@ -39,14 +39,12 @@ module Hansolo
 
         private
 
-        def bucket_name
-          "data_bags-#{Hansolo.app}"
-        end
-
         def bucket
           @bucket ||= begin
-            bucket = s3.buckets[bucket_name]
-            bucket = s3.buckets.create(bucket_name) unless bucket.exists?
+            name = Hansolo.bucket_name
+
+            bucket = s3.buckets[name]
+            bucket = s3.buckets.create(name) unless bucket.exists?
             bucket
           end
         end

@@ -1,15 +1,21 @@
 module Hansolo::Providers::AWS
   module DataBags
     def data_bags
-      bucket.objects.select { |o| o.key =~ /\.json$/ }.map { |object| [object.key.chomp('.json'), object.read] }
+      objects = bucket.objects.with_prefix(Hansolo.app).to_a
+      objects.map do |o|
+        key = o.key.chomp('.json').sub("#{Hansolo.app}/", '')
+        [key, o.read]
+      end
     end
 
     def item_key
-      @item_key ||= "#{bag}/#{item}.json"
+      @item_key ||= "#{Hansolo.app}/#{bag}/#{item}.json"
     end
 
     def item_content
       bucket.objects[item_key].read
+    rescue AWS::S3::Errors::NoSuchKey
+      "{}"
     end
 
     def write_to_storage(content)
