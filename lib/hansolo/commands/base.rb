@@ -22,7 +22,7 @@ module Hansolo
         setup_parser
         parser.parse!(arguments)
 
-        determine_bastion
+        determine_bastion if Hansolo.gateway
       end
 
       def run
