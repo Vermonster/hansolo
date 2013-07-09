@@ -10,7 +10,7 @@ module Hansolo
       end
 
       def hosts
-        @hosts = Array(Hansolo.target).map { |target| URI.parse(target) }
+        @hosts ||= Array(Hansolo.target).map { |target| URI.parse(target) }
       end
     end
   end
