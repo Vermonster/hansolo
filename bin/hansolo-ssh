@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 $: << File.expand_path(File.join(__FILE__, '..', '..', 'lib'))
 
-require 'hansolo/commands/solo'
+require 'hansolo/commands/ssh'
 
-Hansolo::Commands::Solo.run(ARGV)
+Hansolo::Commands::SSH.run(ARGV)
