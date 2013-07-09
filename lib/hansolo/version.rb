@@ -1,3 +1,3 @@
 module Hansolo
-  VERSION = "0.0.1.alpha.3"
+  VERSION = "0.1.0"
 end
