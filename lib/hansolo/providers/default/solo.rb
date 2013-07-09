@@ -1,10 +1,12 @@
 module Hansolo::Providers::DefaultBehavior
   module Solo
 
+    # `rsync` data bags to the node
     def sync_data_bags
       rsync_resource(:data_bags)
     end
 
+    # `rsync` cookbooks to the node
     def sync_cookbooks
       rsync_resource(:cookbooks)
     end

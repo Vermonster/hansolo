@@ -6,6 +6,8 @@ module Hansolo
     class Solo < Base
       include Providers::DefaultBehavior::Solo
 
+      # Puts cookbooks and data bags on the target nodes and runs `chef-solo`.
+      # Providers should implement the {#sync_data_bags} and {#sync_cookbooks}.
       def run
         sync_data_bags
 
@@ -15,6 +17,7 @@ module Hansolo
         execute_chef_solo
       end
 
+      # SSH into each node to prepare and execute a `chef-solo` run.
       def execute_chef_solo
         threads = hosts.map do |host|
           ssh = connect(host)
