@@ -6,7 +6,8 @@ module Hansolo::Providers::AWS
           ssh = connect(host)
 
           command = data_bag_items.inject([]) do |cmd, object|
-            path = Pathname.new('/tmp/data_bags').join(object.key)
+            key = object.key.sub("#{Hansolo.app}/", '')
+            path = Pathname.new('/tmp/data_bags').join(key)
 
             cmd << "mkdir -p #{path.dirname}"
             cmd << "echo '#{object.read}' > #{path}"
@@ -21,7 +22,7 @@ module Hansolo::Providers::AWS
     end
 
     def data_bag_items
-      bucket.objects.select { |o| o.key =~ /\.json$/ }
+      bucket.objects.with_prefix(Hansolo.app)
     end
   end
 end
