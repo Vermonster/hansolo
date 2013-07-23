@@ -11,7 +11,8 @@ module Hansolo
       def run
         sync_data_bags
 
-        Hansolo.librarian.install!
+        # FIXME: this should be set on the command instance
+        Hansolo.librarian.install!(app)
         sync_cookbooks
 
         execute_chef_solo
@@ -43,7 +44,7 @@ module Hansolo
         super
 
         parser.on('-r', '--runlist a,b,c', Array, 'comma-separted list of recipes to run') do |option|
-          Hansolo.runlist = option
+          self.runlist = option
         end
       end
 
@@ -55,7 +56,7 @@ module Hansolo
         if bastion.nil?
           Net::SSH.new(host.host, host.user, port: host.port)
         else
-          gateway.ssh(host.host, host.user, port: host.port)
+          ssh_gateway.ssh(host.host, host.user, port: host.port)
         end
       end
 
@@ -76,11 +77,11 @@ data_bag_path '/tmp/data_bags'
       end
 
       def json
-        { :run_list => Hansolo.runlist }.to_json
+        { :run_list => runlist }.to_json
       end
 
-      def gateway
-        @gateway ||= Net::SSH::Gateway.new(bastion.host, bastion.user, port: bastion.port)
+      def ssh_gateway
+        @ssh_gateway ||= Net::SSH::Gateway.new(bastion.host, bastion.user, port: bastion.port)
       end
     end
   end

@@ -12,17 +12,21 @@ module Hansolo::Commands
 
     private
 
-    def post_ssh_command
-      "#{Hansolo.post_ssh_command}; bash -i"
+    def shell_command
+      if post_ssh_command
+        "#{post_ssh_command}; bash -i"
+      else
+        "bash -i"
+      end
     end
 
     def ssh
       Cocaine::CommandLine.new('ssh', ssh_params)
     end
 
-    def ssh_options
-      options = ":user@:host #{Hansolo.ssh_options} -p :port"
-      options << ' -t :command' if Hansolo.post_ssh_command
+    def ssh_arguments
+      options = ":user@:host #{ssh_options} -p :port"
+      options << ' -t :command'
       options
     end
 
@@ -34,17 +38,17 @@ module Hansolo::Commands
           user: uri.user,
           host: uri.host,
           port: uri.port.to_s,
-          command: post_ssh_command
+          command: shell_command
         }
       end
     end
 
     def bastion_ssh
-      Cocaine::CommandLine.new('ssh', bastion_ssh_options)
+      Cocaine::CommandLine.new('ssh', bastion_ssh_arguments)
     end
 
-    def bastion_ssh_options
-      "-A -l :bastion_user #{Hansolo.ssh_options} -p :bastion_port :bastion_host -t \"ssh #{ssh_options}\""
+    def bastion_ssh_arguments
+      "-A -l :bastion_user #{ssh_options} -p :bastion_port :bastion_host -t \"ssh #{ssh_arguments}\""
     end
 
     def bastion_params

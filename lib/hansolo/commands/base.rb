@@ -17,6 +17,18 @@ module Hansolo
       #   @return [URI] attributes of the bastion server
       attr_reader :bastion
 
+      attr_writer *ATTRIBUTES
+
+      ATTRIBUTES.each do |attribute|
+        define_method attribute do
+          if instance_variable_defined?("@#{attribute}")
+            instance_variable_get("@#{attribute}")
+          else
+            Hansolo.send(attribute)
+          end
+        end
+      end
+
       # Run the command
       # @see {#run}
       def self.run(arguments)
@@ -34,7 +46,7 @@ module Hansolo
         setup_parser
         parser.parse!(arguments)
 
-        determine_bastion if Hansolo.gateway
+        determine_bastion if gateway
       end
 
       # Public interface to the command to be implemented in a subclass.
@@ -73,11 +85,11 @@ module Hansolo
         end
 
         parser.on( '-t', '--target a,b,c', Array, "comma-sep list of urls, e.g.: user@host:port/dest/path") do |option|
-          Hansolo.target = option
+          self.target = option
         end
 
         parser.on( '-a', '--app s', String, "the application name") do |option|
-          Hansolo.app = option
+          self.app = option
         end
       end
     end

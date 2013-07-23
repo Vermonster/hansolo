@@ -3,17 +3,21 @@ require "hansolo/version"
 require 'hansolo/librarians'
 
 module Hansolo
+  ATTRIBUTES = [
+    :keydir,
+    :gateway,
+    :app,
+    :target,
+    :runlist,
+    :cookbooks_path,
+    :data_bags_path,
+    :post_ssh_command,
+    :librarian,
+    :ssh_options
+  ]
+
   class << self
-    attr_accessor :keydir,
-                  :gateway,
-                  :app,
-                  :target,
-                  :runlist,
-                  :cookbooks_path,
-                  :data_bags_path,
-                  :post_ssh_command,
-                  :librarian,
-                  :ssh_options
+    attr_accessor *ATTRIBUTES
   end
 
   LOGGER = Logger.new(STDOUT)

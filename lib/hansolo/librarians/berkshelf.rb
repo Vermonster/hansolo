@@ -2,8 +2,8 @@ module Hansolo::Librarians
   module Berkshelf
     module_function
 
-    def install!
-      directory = Pathname.new("tmp/cookbooks/#{Hansolo.app}")
+    def install!(app)
+      directory = Pathname.new("tmp/cookbooks/#{app}")
       FileUtils.mkdir_p(directory)
 
       files = Dir[directory.join('*')]

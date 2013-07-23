@@ -26,21 +26,21 @@ module Hansolo::Providers::DefaultBehavior
     end
 
     def rsync_options
-      "--delete -av -e \"#{ssh_options}\" :source :destination"
+      "--delete -av -e \"#{ssh_command}\" :source :destination"
     end
 
-    def ssh_options
+    def ssh_command
       if !bastion.nil?
-        "ssh -A -l :bastion_user #{Hansolo.ssh_options} :bastion_host ssh -l :user #{Hansolo.ssh_options} -p :port"
+        "ssh -A -l :bastion_user #{ssh_options} :bastion_host ssh -l :user #{ssh_options} -p :port"
       else
-        "ssh -l :user #{Hansolo.ssh_options} -p :port"
+        "ssh -l :user #{ssh_options} -p :port"
       end
     end
 
     def rsync_params(host, content)
       params = {
         user: host.user,
-        ssh_options: Hansolo.ssh_options,
+        ssh_options: ssh_options,
         port: host.port.to_s,
         source: source(content),
         destination: destination(host, content)
@@ -58,7 +58,7 @@ module Hansolo::Providers::DefaultBehavior
     end
 
     def source(content)
-      "#{Hansolo.send("#{content}_path").join(Hansolo.app)}/"
+      "#{send("#{content}_path").join(app)}/"
     end
 
     def destination(host, content)

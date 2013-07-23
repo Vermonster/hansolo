@@ -25,10 +25,9 @@ module Hansolo
 
         def hosts
           @hosts ||= begin
-            target = Hansolo.target
             return super unless target.is_a?(Hash)
 
-            target_instances = instances_by_tag(target[:host].to_s, Hansolo.app)
+            target_instances = instances_by_tag(target[:host].to_s, app)
 
             target_instances.map do |instance|
               ip_address = instance.ip_address || instance.private_ip_address

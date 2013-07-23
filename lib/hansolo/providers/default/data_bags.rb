@@ -3,12 +3,12 @@ module Hansolo::Providers::DefaultBehavior
     # Key-value pairs of the name of the data bag item to the item's content.
     # @return [Hash]
     def data_bags
-      @data_bags ||= Dir[Hansolo.data_bags_path.join('*', '**')].map { |path| [path.chomp('.json'), load_content(path)] }
+      @data_bags ||= Dir[data_bags_path.join('*', '**')].map { |path| [path.chomp('.json'), load_content(path)] }
     end
 
     # Path to the
     def item_path
-      Hansolo.data_bags_path.join(bag, "#{item}.json")
+      data_bags_path.join(bag, "#{item}.json")
     end
 
     def load_content(path)
