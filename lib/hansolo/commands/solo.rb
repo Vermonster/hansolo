@@ -39,6 +39,14 @@ module Hansolo
 
       private
 
+      def setup_parser
+        super
+
+        parser.on('-r', '--runlist a,b,c', Array, 'comma-separted list of recipes to run') do |option|
+          Hansolo.runlist = option
+        end
+      end
+
       def chef_solo
         'sudo chef-solo -c /tmp/solo.rb -j /tmp/deploy.json'
       end
