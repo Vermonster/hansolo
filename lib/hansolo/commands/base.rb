@@ -49,6 +49,18 @@ module Hansolo
         determine_bastion if gateway
       end
 
+      # Interface for configuring the command instance from ruby.
+      #
+      # @argument [Hash] options hash where keys match attribute values that
+      # can be set on `Hansolo`
+      def configure!(options = {})
+        options.each do |attr, value|
+          send("#{attr}=", value) if respond_to?(attr)
+        end
+
+        yield self if block_given?
+      end
+
       # Public interface to the command to be implemented in a subclass.
       def run
         raise NotImplementedError
