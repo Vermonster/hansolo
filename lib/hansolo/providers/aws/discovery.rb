@@ -50,7 +50,9 @@ module Hansolo
         end
 
         def instances_by_tag(tag, value)
-          ec2.instances.tagged(tag).tagged_values(value)
+          ec2.instances.tagged(tag).tagged_values(value).select do |instance|
+            instance.status != :terminated
+          end
         end
       end
     end
