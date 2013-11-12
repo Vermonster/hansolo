@@ -53,7 +53,7 @@ module Hansolo
 
       def connect(host)
         if bastion.nil?
-          Net::SSH.new(host.host, host.user, port: host.port)
+          Net::SSH.start(host.host, host.user, port: host.port)
         else
           gateway.ssh(host.host, host.user, port: host.port)
         end
