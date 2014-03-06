@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["brian@vermonster.com"]
   spec.description   = %q{Tool to automate deployment using chef-solo and berkshelf}
   spec.summary       = %q{Vendors Berkshelf cookbooks, uses rsync to sync cookbooks, and NET::SSH to run chef-solo with conventions for building solo.rb and the JSON runlist}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/Vermonster/hansolo"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
