@@ -3,13 +3,22 @@ module Hansolo::Librarians
     module_function
 
     def install!
-      directory = Pathname.new("tmp/cookbooks/#{Hansolo.app}")
-      FileUtils.mkdir_p(directory)
 
-      files = Dir[directory.join('*')]
-      FileUtils.rm_rf(files)
+      if Gem.loaded_specs['berkshelf'].version < Gem::Version.new('3')
+        directory = Pathname.new("tmp/cookbooks/#{Hansolo.app}")
+        FileUtils.mkdir_p(directory)
 
-      system("berks install --path #{directory}")
+        files = Dir[directory.join('*')]
+        FileUtils.rm_rf(files)
+
+        system("berks install --path #{directory}")
+      else
+        directory = Pathname.new("tmp/cookbooks/#{Hansolo.app}")
+        FileUtils.rm_rf(directory)
+
+        system("berks vendor #{directory}")
+      end
+
     end
   end
 end
