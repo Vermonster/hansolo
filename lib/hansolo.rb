@@ -13,7 +13,8 @@ module Hansolo
                   :data_bags_path,
                   :post_ssh_command,
                   :librarian,
-                  :ssh_options
+                  :ssh_options,
+                  :chef_options
   end
 
   LOGGER = Logger.new(STDOUT)

@@ -42,13 +42,17 @@ module Hansolo
       def setup_parser
         super
 
+        parser.on('--chef-options "-l"', String, 'options to pass to chef-client') do |chef_options|
+          Hansolo.chef_options = chef_options
+        end
+
         parser.on('-r', '--runlist a,b,c', Array, 'comma-separted list of recipes to run') do |option|
           Hansolo.runlist = option
         end
       end
 
       def chef_solo
-        'sudo chef-solo -c /tmp/solo.rb -j /tmp/deploy.json'
+        "sudo chef-solo -c /tmp/solo.rb -j /tmp/deploy.json #{Hansolo.chef_options}"
       end
 
       def connect(host)
