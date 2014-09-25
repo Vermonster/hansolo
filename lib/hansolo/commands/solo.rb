@@ -42,7 +42,7 @@ module Hansolo
       def setup_parser
         super
 
-        parser.on('--chef-options "-l"', String, 'options to pass to chef-client') do |chef_options|
+        parser.on('--chef-options s', String, 'options to pass to chef-client, e.g. --chef-options "-l"') do |chef_options|
           Hansolo.chef_options = chef_options
         end
 
