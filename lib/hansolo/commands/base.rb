@@ -72,7 +72,7 @@ module Hansolo
           exit
         end
 
-        parser.on( '-t', '--target a,b,c', Array, "comma-sep list of urls, e.g.: user@host:port/dest/path") do |option|
+        parser.on( '-t', '--target a,b,c', Array, "comma-sep list of urls, e.g.: ssh://user@host:port,ssh://user@host2:port") do |option|
           Hansolo.target = option
         end
 
